@@ -10,16 +10,42 @@ and `public.registrations` tables.
 2. Keep `SUPABASE_URL` in your local `.env` and add `SUPABASE_SECRET_KEY` or
    `SUPABASE_SERVICE_ROLE_KEY` using the corresponding server key from your
    Supabase project.
-3. Run `python -m pip install -r requirements.txt` and `python app.py`.
-   The development server listens on `http://127.0.0.1:5000`.
+3. Follow the local setup below to run the API.
+
+## Run locally
+
+From the `backend` directory, create and activate a virtual environment, then
+install dependencies:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+Set `SUPABASE_URL` and either `SUPABASE_SECRET_KEY` or
+`SUPABASE_SERVICE_ROLE_KEY` in a local `.env` file. Do not commit `.env` or
+server keys. Start the development server with `python app.py`; it listens on
+`http://127.0.0.1:5000`. Check the health endpoint with:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5000/
+```
 
 ## Deploying to Render
 
-Create a Render Web Service with `backend` as its root directory. Use
-`pip install -r requirements.txt` as the build command and
-`gunicorn app:app --bind 0.0.0.0:$PORT` as the start command. Add `SUPABASE_URL`
-and either `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` as Render
-environment variables; do not commit `.env` or server keys.
+The repository root contains `render.yaml`, which configures a free Render web
+service with `backend` as its root directory. For a manually created Web
+Service, use:
+
+- **Root Directory:** `backend`
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT`
+
+Set `SUPABASE_URL` and either `SUPABASE_SECRET_KEY` or
+`SUPABASE_SERVICE_ROLE_KEY` in Render's environment settings. The development
+server in `app.py` is only used by `python app.py`; Render runs the WSGI app
+through Gunicorn, which binds to Render's `PORT`.
 
 This API does not authenticate callers. A public deployment allows anyone who
 knows the relevant UUIDs to call its endpoints, so add caller authentication
