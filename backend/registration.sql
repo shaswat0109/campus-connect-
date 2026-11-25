@@ -13,10 +13,14 @@ declare
     event_capacity public.events.capacity%type;
     registration public.registrations%rowtype;
 begin
+    -- Serialize registration RPCs for the same event without a table UPDATE grant.
+    perform pg_catalog.pg_advisory_xact_lock(
+        pg_catalog.hashtextextended('register_for_event:' || p_event_id::text, 0)
+    );
+
     select capacity into event_capacity
     from public.events
-    where id = p_event_id
-    for no key update;
+    where id = p_event_id;
 
     if not found then
         raise sqlstate 'PT404' using message = 'Event not found.';
