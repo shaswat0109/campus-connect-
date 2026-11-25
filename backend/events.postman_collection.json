@@ -23,7 +23,7 @@
   ],
   "item": [
     {
-      "name": "Service metadata",
+      "name": "Homepage event summary",
       "request": {
         "method": "GET",
         "url": "{{base_url}}/"

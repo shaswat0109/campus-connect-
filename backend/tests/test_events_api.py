@@ -32,8 +32,33 @@ class ApiTests(unittest.TestCase):
     def test_initialization_and_health(self):
         self.assertFalse(backend.app.debug)
         self.assertEqual(self.client.get("/health").json, {"status": "ok"})
-        self.assertEqual(self.client.get("/").json, {"service": "Events API"})
         self.db.table.assert_not_called()
+
+    def test_campus_page_serves_frontend_without_a_database_query(self):
+        for path, mimetype in (
+            ("/campus", "text/html"),
+            ("/campus/styles.css", "text/css"),
+            ("/campus/campus.js", "text/javascript"),
+        ):
+            with self.subTest(path=path), self.client.get(path) as response:
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.mimetype, mimetype)
+        self.assertEqual(self.client.get("/campus/design/code.html").status_code, 404)
+        with self.client.get("/campus") as response:
+            self.assertIn(b"<h1>Campus <em>after class.</em></h1>", response.data)
+            self.assertIn(b"async function loadEvents", response.data)
+        self.db.table.assert_not_called()
+
+    def test_root_event_summary(self):
+        self.query.execute.return_value.data = [EVENT_ROW]
+        with patch.dict("os.environ", {"ENABLE_DEMO_REGISTRATIONS": "false"}):
+            response = self.client.get("/?limit=1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {
+            "events": [EVENT_ROW], "service": "event-registration-api", "status": "ok",
+        })
+        self.db.table.return_value.select.assert_called_once_with(backend.PUBLIC_EVENT_COLUMNS)
+        self.query.range.assert_called_once_with(0, 0)
 
     def test_list_events(self):
         self.query.execute.return_value.data = [EVENT_ROW]

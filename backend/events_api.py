@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from dotenv import load_dotenv
-from flask import Flask, abort, jsonify, request
+from flask import Flask, abort, jsonify, render_template_string, request, send_from_directory
 from httpx import RequestError
 from postgrest import APIError
 from supabase import SupabaseException, create_client
@@ -16,6 +16,7 @@ app.config.update(DEBUG=False, MAX_CONTENT_LENGTH=16 * 1024)
 PUBLIC_EVENT_COLUMNS = "id,title,capacity,status"
 EVENT_COLUMNS = f"{PUBLIC_EVENT_COLUMNS},organizer_id"
 REGISTRATION_COLUMNS = "id,user_id,event_id,created_at"
+FRONTEND_DIRECTORY = Path(__file__).resolve().parent.parent / "frontend"
 
 
 def demo_registrations_enabled():
@@ -109,7 +110,7 @@ def database_connection_error(error):
 
 @app.get("/")
 def index():
-    return jsonify(service="Events API")
+    return jsonify(events=event_rows(), service="event-registration-api", status="ok")
 
 
 @app.get("/health")
@@ -117,11 +118,30 @@ def health():
     return jsonify(status="ok")
 
 
-@app.get("/api/events")
-def list_events():
+@app.get("/campus")
+@app.get("/campus/")
+def campus():
+    return render_template_string(
+        (FRONTEND_DIRECTORY / "index.html").read_text(encoding="utf-8"),
+        campus_css=(FRONTEND_DIRECTORY / "styles.css").read_text(encoding="utf-8"),
+        campus_js=(FRONTEND_DIRECTORY / "campus.js").read_text(encoding="utf-8"),
+    )
+
+
+@app.get("/campus/<any(styles.css,campus.js):filename>")
+def campus_asset(filename):
+    return send_from_directory(FRONTEND_DIRECTORY, filename)
+
+
+def event_rows():
     bounds = pagination()
     columns = EVENT_COLUMNS if demo_registrations_enabled() else PUBLIC_EVENT_COLUMNS
-    return jsonify(page(database().table("events").select(columns), bounds))
+    return page(database().table("events").select(columns), bounds)
+
+
+@app.get("/api/events")
+def list_events():
+    return jsonify(event_rows())
 
 
 @app.get("/api/events/<event_id>")

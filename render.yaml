@@ -4,10 +4,9 @@ services:
     runtime: python
     plan: free
     branch: main
-    rootDir: backend
     autoDeployTrigger: off
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT run:app
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend --bind 0.0.0.0:$PORT run:app
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

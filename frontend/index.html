@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus Connect</title>
+<style>{{ campus_css | safe }}</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="/campus"><span aria-hidden="true">CC</span> Campus Connect</a><a href="#events">Events</a></div></header>
+<main class="wrap">
+<section class="intro"><p class="tag">Sushant University</p><h1>Campus <em>after class.</em></h1><p>Hackathons, workshops, and everything worth showing up for.</p><a class="button" href="#events">Find your next event</a></section>
+<section id="events" aria-labelledby="events-title">
+<h2 id="events-title">Explore events</h2>
+<label for="search">Search by event title</label>
+<input id="search" type="search" placeholder="Search events" disabled>
+<p id="status" role="status">Loading events…</p>
+<div id="cards" class="cards"></div>
+<button id="more" hidden>Load more</button>
+</section>
+</main>
+<footer><div class="wrap">Campus Connect · Sushant University</div></footer>
+<dialog id="details" aria-labelledby="detail-title">
+<form method="dialog"><button>Close</button></form>
+<h2 id="detail-title"></h2><p id="detail-status" role="status"></p><p id="detail-capacity"></p>
+</dialog>
+<script>{{ campus_js | safe }}</script>
+</body>
+</html>

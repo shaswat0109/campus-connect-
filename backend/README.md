@@ -2,6 +2,8 @@
 
 Flask exposes the event and registration REST contract over the existing Supabase PostgreSQL tables. Gunicorn serves the same Flask app on Render. The API uses JSON and has no login.
 
+Open `http://127.0.0.1:5000/campus` for the responsive Campus Connect frontend. It reads event summaries from the same-origin Flask API and displays the selected event details.
+
 ```text
 backend/
   run.py                         Flask and Gunicorn entry point
@@ -52,7 +54,7 @@ All GET requests have an empty body. List routes accept optional integer `limit`
 
 | Method and URL | Request | Success response | Endpoint errors |
 | --- | --- | --- | --- |
-| `GET /` | None | `200 {"service":"Events API"}` | — |
+| `GET /` | Optional paging | `200 {"events":[],"service":"event-registration-api","status":"ok"}` with the current event list | `400` invalid paging |
 | `GET /health` | None | `200 {"status":"ok"}` | — |
 | `GET /api/events?limit=10&offset=0` | Optional paging | `200` array of events | `400` invalid paging |
 | `GET /api/events/{event_id}` | Event UUID in path | `200` event object | `400` invalid UUID, `404` missing event |
@@ -118,9 +120,9 @@ Use the root [render.yaml](../render.yaml) as a Blueprint or enter these setting
 | Repository | `shaswat0109/campus-connect-` |
 | Runtime | Python |
 | Branch | `main` |
-| Root Directory | `backend` |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | `gunicorn --bind 0.0.0.0:$PORT run:app` |
+| Root Directory | Leave blank to use the repository root |
+| Build Command | `pip install -r backend/requirements.txt` |
+| Start Command | `gunicorn --chdir backend --bind 0.0.0.0:$PORT run:app` |
 | Health Check Path | `/health` |
 | Auto-Deploy | Off |
 
